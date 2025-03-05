@@ -16,7 +16,7 @@ class _LocalDataStoragePageState extends State<LocalDataStoragePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Local Data Storage Page"),
+        title: const Text("Local Storage Page"),
         actions: [
           IconButton(
               onPressed: () async {
