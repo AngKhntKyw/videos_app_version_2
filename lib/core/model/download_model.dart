@@ -10,6 +10,7 @@ class DownloadModel with _$DownloadModel {
   factory DownloadModel({
     required int id,
     required int courseId,
+    required String lessonTitle,
     required String url,
     required String path,
     required double progress,

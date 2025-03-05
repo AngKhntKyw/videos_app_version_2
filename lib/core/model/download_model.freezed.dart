@@ -24,6 +24,8 @@ mixin _$DownloadModel {
   set id(int value) => throw _privateConstructorUsedError;
   int get courseId => throw _privateConstructorUsedError;
   set courseId(int value) => throw _privateConstructorUsedError;
+  String get lessonTitle => throw _privateConstructorUsedError;
+  set lessonTitle(String value) => throw _privateConstructorUsedError;
   String get url => throw _privateConstructorUsedError;
   set url(String value) => throw _privateConstructorUsedError;
   String get path => throw _privateConstructorUsedError;
@@ -48,6 +50,7 @@ abstract class $DownloadModelCopyWith<$Res> {
   $Res call(
       {int id,
       int courseId,
+      String lessonTitle,
       String url,
       String path,
       double progress,
@@ -69,6 +72,7 @@ class _$DownloadModelCopyWithImpl<$Res, $Val extends DownloadModel>
   $Res call({
     Object? id = null,
     Object? courseId = null,
+    Object? lessonTitle = null,
     Object? url = null,
     Object? path = null,
     Object? progress = null,
@@ -83,6 +87,10 @@ class _$DownloadModelCopyWithImpl<$Res, $Val extends DownloadModel>
           ? _value.courseId
           : courseId // ignore: cast_nullable_to_non_nullable
               as int,
+      lessonTitle: null == lessonTitle
+          ? _value.lessonTitle
+          : lessonTitle // ignore: cast_nullable_to_non_nullable
+              as String,
       url: null == url
           ? _value.url
           : url // ignore: cast_nullable_to_non_nullable
@@ -114,6 +122,7 @@ abstract class _$$DownloadModelImplCopyWith<$Res>
   $Res call(
       {int id,
       int courseId,
+      String lessonTitle,
       String url,
       String path,
       double progress,
@@ -133,6 +142,7 @@ class __$$DownloadModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? courseId = null,
+    Object? lessonTitle = null,
     Object? url = null,
     Object? path = null,
     Object? progress = null,
@@ -147,6 +157,10 @@ class __$$DownloadModelImplCopyWithImpl<$Res>
           ? _value.courseId
           : courseId // ignore: cast_nullable_to_non_nullable
               as int,
+      lessonTitle: null == lessonTitle
+          ? _value.lessonTitle
+          : lessonTitle // ignore: cast_nullable_to_non_nullable
+              as String,
       url: null == url
           ? _value.url
           : url // ignore: cast_nullable_to_non_nullable
@@ -173,6 +187,7 @@ class _$DownloadModelImpl extends _DownloadModel {
   _$DownloadModelImpl(
       {required this.id,
       required this.courseId,
+      required this.lessonTitle,
       required this.url,
       required this.path,
       required this.progress,
@@ -187,6 +202,8 @@ class _$DownloadModelImpl extends _DownloadModel {
   @override
   int courseId;
   @override
+  String lessonTitle;
+  @override
   String url;
   @override
   String path;
@@ -198,7 +215,7 @@ class _$DownloadModelImpl extends _DownloadModel {
 
   @override
   String toString() {
-    return 'DownloadModel(id: $id, courseId: $courseId, url: $url, path: $path, progress: $progress, status: $status)';
+    return 'DownloadModel(id: $id, courseId: $courseId, lessonTitle: $lessonTitle, url: $url, path: $path, progress: $progress, status: $status)';
   }
 
   @JsonKey(ignore: true)
@@ -219,6 +236,7 @@ abstract class _DownloadModel extends DownloadModel {
   factory _DownloadModel(
       {required int id,
       required int courseId,
+      required String lessonTitle,
       required String url,
       required String path,
       required double progress,
@@ -234,6 +252,9 @@ abstract class _DownloadModel extends DownloadModel {
   @override
   int get courseId;
   set courseId(int value);
+  @override
+  String get lessonTitle;
+  set lessonTitle(String value);
   @override
   String get url;
   set url(String value);

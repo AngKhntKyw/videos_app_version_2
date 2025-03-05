@@ -10,6 +10,7 @@ _$DownloadModelImpl _$$DownloadModelImplFromJson(Map<String, dynamic> json) =>
     _$DownloadModelImpl(
       id: (json['id'] as num).toInt(),
       courseId: (json['courseId'] as num).toInt(),
+      lessonTitle: json['lessonTitle'] as String,
       url: json['url'] as String,
       path: json['path'] as String,
       progress: (json['progress'] as num).toDouble(),
@@ -21,6 +22,7 @@ Map<String, dynamic> _$$DownloadModelImplToJson(_$DownloadModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'courseId': instance.courseId,
+      'lessonTitle': instance.lessonTitle,
       'url': instance.url,
       'path': instance.path,
       'progress': instance.progress,

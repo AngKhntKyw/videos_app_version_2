@@ -72,9 +72,10 @@ class CourseProvider with ChangeNotifier {
   }
 
   Future<void> updataDatasource({required Lesson lesson}) async {
-    DownloadModel downloadModel = await checkIsDownloaded(lesson: lesson);
-    if (downloadModel.status == DownloadStatus.success) {
+    // DownloadModel downloadModel = await checkIsDownloaded(lesson: lesson);
+    if (lesson.downloadModel!.status == DownloadStatus.success) {
       int datasourceIndex = findDataSourceIndexByLesson(lesson: lesson);
+      log("index $datasourceIndex");
       _dataSourceList[datasourceIndex] =
           BetterPlayerDataSource.file(lesson.downloadModel!.path);
     }
@@ -83,21 +84,21 @@ class CourseProvider with ChangeNotifier {
 
   Future<void> updateCourseWithDownloadStatus() async {
     final updatedUnits = await Future.wait(
-      _currentCourse!.units.map((unit) => _updateUnitWithDownloadStatus(unit)),
+      _currentCourse!.units.map((unit) => updateUnitWithDownloadStatus(unit)),
     );
     _currentCourse = _currentCourse!.copyWith(units: updatedUnits);
     notifyListeners();
   }
 
-  Future<Unit> _updateUnitWithDownloadStatus(Unit unit) async {
+  Future<Unit> updateUnitWithDownloadStatus(Unit unit) async {
     final updatedLessons = await Future.wait(
-      unit.lessons.map((lesson) => _updateLessonWithDownloadStatus(lesson)),
+      unit.lessons.map((lesson) => updateLessonWithDownloadStatus(lesson)),
     );
 
     return unit.copyWith(lessons: updatedLessons);
   }
 
-  Future<Lesson> _updateLessonWithDownloadStatus(Lesson lesson) async {
+  Future<Lesson> updateLessonWithDownloadStatus(Lesson lesson) async {
     final downloadModel = await checkIsDownloaded(lesson: lesson);
     return lesson.copyWith(downloadModel: downloadModel);
   }
@@ -109,6 +110,7 @@ class CourseProvider with ChangeNotifier {
       orElse: () => DownloadModel(
         id: lesson.id,
         courseId: _currentCourse!.id,
+        lessonTitle: lesson.title,
         url: lesson.lessonUrl!,
         path: '',
         progress: 0,
@@ -119,25 +121,31 @@ class CourseProvider with ChangeNotifier {
 
 //
   int findDataSourceIndexByLesson({required Lesson lesson}) {
-    log("LessonURL :${lesson.lessonUrl}");
-    log("Lesson DownloadModel :${lesson.downloadModel!.path}");
-
-    final result = _dataSourceList.indexWhere(
-      (element) {
-        log("Element : ${element.url}");
-        if (lesson.downloadModel!.status == DownloadStatus.success) {
-          return element.url == lesson.downloadModel!.path;
-        }
-        return element.url == lesson.lessonUrl;
-      },
-    );
-    return result;
+    log("Datasource : ${_dataSourceList[1].url}");
+    log("Lesson url : ${lesson.lessonUrl}");
+    log("Lesson DownloadModel : ${lesson.downloadModel?.status.name}");
+    if (lesson.downloadModel!.status == DownloadStatus.success) {
+      return _dataSourceList
+          .indexWhere((element) => element.url == lesson.downloadModel!.path);
+    } else {
+      return _dataSourceList
+          .indexWhere((element) => element.url == lesson.lessonUrl);
+    }
   }
 
   Lesson findLessonByDataSourceIndex({required int? index}) {
     return _videoLessons.firstWhere(
         (element) => _dataSourceList[index!].url == element.lessonUrl,
         orElse: () => _videoLessons.first);
+  }
+
+  Lesson getLessonByDownloadModelId({required DownloadModel downloadModel}) {
+    return _currentCourse!.units
+        .where((e) => e.lessons.isNotEmpty)
+        .expand((unit) => unit.lessons)
+        .where((lesson) => lesson.lessonType == 'VIDEO')
+        .toList()
+        .firstWhere((element) => element.id == downloadModel.id);
   }
 
   bool isLessonWatching({required int lessonId}) {
@@ -148,60 +156,31 @@ class CourseProvider with ChangeNotifier {
   }
 
   void setWatchingLesson({required Lesson lesson}) async {
-    log("Set lesson : $lesson");
     _watchingLesson = lesson;
     notifyListeners();
-  }
-
-  Future<int> getLastWatchingLesson() async {
-    if (_watchingLesson == null) {
-      return 0;
-    } else {
-      final lastlesson = await checkIsDownloaded(lesson: _watchingLesson!);
-
-      if (lastlesson.status == DownloadStatus.success) {
-        return _dataSourceList.indexWhere(
-            (element) => element.url == _watchingLesson!.downloadModel!.path);
-      } else {
-        return _dataSourceList
-            .indexWhere((element) => element.url == _watchingLesson!.lessonUrl);
-      }
-    }
   }
 
   void createDownload({required Lesson lesson}) async {
     DownloadModel downloadModel = DownloadModel(
       id: lesson.id,
       courseId: _currentCourse!.id,
+      lessonTitle: lesson.title,
       url: lesson.lessonUrl!,
-      path: 'not download path',
+      path: '',
       progress: 0,
       status: DownloadStatus.waiting,
     );
-    final result =
-        await databaseHelper.createDownload(downloadModel: downloadModel);
-    log("result : $result");
+
+    await databaseHelper.createDownload(downloadModel: downloadModel);
     await updateCourseWithDownloadStatus();
     await updataDatasource(lesson: lesson);
-
     //
     await queueDownload();
 
     //
   }
 
-  Future<Lesson> getLessonByDownloadModelId(
-      {required DownloadModel downloadModel}) async {
-    return _currentCourse!.units
-        .where((e) => e.lessons.isNotEmpty)
-        .expand((unit) => unit.lessons)
-        .where((lesson) => lesson.lessonType == 'VIDEO')
-        .toList()
-        .firstWhere((element) => element.id == downloadModel.id);
-  }
-
   Future<void> queueDownload() async {
-    await Future.delayed(const Duration(seconds: 5));
     log("queue downloading...");
 
     List<DownloadModel> downloadModels = await databaseHelper.getDownloads();
@@ -220,23 +199,23 @@ class CourseProvider with ChangeNotifier {
   }
 
   Future<void> startDownloading({required DownloadModel downloadModel}) async {
-    await Future.delayed(const Duration(seconds: 5));
+    await Future.delayed(const Duration(seconds: 3));
     log("start downloading...");
 
     downloadModel = downloadModel.copyWith(status: DownloadStatus.running);
     await databaseHelper.updateDownload(download: downloadModel);
-    final lesson =
-        await getLessonByDownloadModelId(downloadModel: downloadModel);
     await updateCourseWithDownloadStatus();
+    final lesson = getLessonByDownloadModelId(downloadModel: downloadModel);
     await updataDatasource(lesson: lesson);
 
     //
-    await Future.delayed(const Duration(seconds: 5));
+    await Future.delayed(const Duration(seconds: 3));
 
     //
     downloadModel = DownloadModel(
       id: lesson.id,
       courseId: _currentCourse!.id,
+      lessonTitle: lesson.title,
       url: lesson.lessonUrl!,
       path: 'downloaded path',
       progress: 1,
@@ -244,11 +223,10 @@ class CourseProvider with ChangeNotifier {
     );
 
     await databaseHelper.updateDownload(download: downloadModel);
+    await updateCourseWithDownloadStatus();
 
     final updatedLesson =
-        await getLessonByDownloadModelId(downloadModel: downloadModel);
-    await updateCourseWithDownloadStatus();
-    log("Updated Lesson ${lesson.downloadModel}");
+        getLessonByDownloadModelId(downloadModel: downloadModel);
     await updataDatasource(lesson: updatedLesson);
   }
 

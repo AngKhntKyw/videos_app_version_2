@@ -22,16 +22,14 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
   BetterPlayerPlaylistController? get getKey =>
       betterPlayerPlaylistStateKey.currentState!.betterPlayerPlaylistController;
   late BetterPlayerConfiguration betterPlayerConfiguration;
-  // late BetterPlayerPlaylistConfiguration betterPlayerPlaylistConfiguration;
+  late BetterPlayerPlaylistConfiguration betterPlayerPlaylistConfiguration;
 
   //
 
   @override
   void initState() {
     context.read<CourseProvider>().setUpVideoDataSource(course: widget.course);
-
     initBetterPlayer();
-
     super.initState();
   }
 
@@ -47,125 +45,109 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    final courseProvider = context.watch<CourseProvider>();
     return Scaffold(
-      appBar: AppBar(),
-      body: FutureBuilder(
-        future: context.read<CourseProvider>().getLastWatchingLesson(),
-        builder: (context, snapshot) {
-          final courseProvider = context.watch<CourseProvider>();
-
-          if (snapshot.connectionState == ConnectionState.waiting ||
-              courseProvider.currentCourse == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(snapshot.error.toString()),
-            );
-          }
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BetterPlayerPlaylist(
-                betterPlayerConfiguration: betterPlayerConfiguration,
-                key: betterPlayerPlaylistStateKey,
-                betterPlayerDataSourceList: courseProvider.dataSourceList,
-                betterPlayerPlaylistConfiguration:
-                    BetterPlayerPlaylistConfiguration(
-                  loopVideos: false,
-                  nextVideoDelay: const Duration(seconds: 5),
-                  initialStartIndex: snapshot.data!,
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  // physics: const NeverScrollableScrollPhysics(),
-                  itemCount: courseProvider.currentCourse!.units.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return ExpansionTile(
-                      childrenPadding:
-                          const EdgeInsets.symmetric(horizontal: 10),
-                      maintainState: false,
-                      shape: const ContinuousRectangleBorder(
-                          side: BorderSide(color: Colors.grey, width: 0)),
-                      controlAffinity: ListTileControlAffinity.trailing,
-                      enableFeedback: true,
-                      expansionAnimationStyle: AnimationStyle(
-                        curve: Curves.easeInOut,
-                        reverseCurve: Curves.easeInOut,
-                      ),
-                      dense: true,
-                      title: Text(widget.course.units[index].name),
-                      subtitle: Text(
-                          "${widget.course.units[index].lessons.length} lessons"),
-                      onExpansionChanged: (value) {},
-                      children: [
-                        //
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: courseProvider
-                              .currentCourse!.units[index].lessons.length,
-                          itemBuilder: (context, lessonIndex) {
-                            Lesson currentLesson = courseProvider.currentCourse!
-                                .units[index].lessons[lessonIndex];
-
+        appBar: AppBar(),
+        body: courseProvider.currentCourse == null
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BetterPlayerPlaylist(
+                    betterPlayerConfiguration: betterPlayerConfiguration,
+                    key: betterPlayerPlaylistStateKey,
+                    betterPlayerDataSourceList: courseProvider.dataSourceList,
+                    betterPlayerPlaylistConfiguration:
+                        betterPlayerPlaylistConfiguration,
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      // physics: const NeverScrollableScrollPhysics(),
+                      itemCount: courseProvider.currentCourse!.units.length,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        return ExpansionTile(
+                          childrenPadding:
+                              const EdgeInsets.symmetric(horizontal: 10),
+                          maintainState: false,
+                          shape: const ContinuousRectangleBorder(
+                              side: BorderSide(color: Colors.grey, width: 0)),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          enableFeedback: true,
+                          expansionAnimationStyle: AnimationStyle(
+                            curve: Curves.easeInOut,
+                            reverseCurve: Curves.easeInOut,
+                          ),
+                          dense: true,
+                          title: Text(widget.course.units[index].name),
+                          subtitle: Text(
+                              "${widget.course.units[index].lessons.length} lessons"),
+                          onExpansionChanged: (value) {},
+                          children: [
                             //
-                            return ListTile(
-                              dense: true,
-                              leading: courseProvider.isLessonWatching(
-                                      lessonId: currentLesson.id)
-                                  ? const Icon(
-                                      Icons.pause_circle,
-                                      color: Colors.green,
-                                    )
-                                  : const Icon(Icons.play_circle),
-                              title: Text(
-                                currentLesson.title,
-                              ),
-                              subtitle: Text(
-                                currentLesson.downloadModel!.path,
-                                maxLines: 2,
-                              ),
-                              trailing: trailingIcon(
-                                  currentLesson: currentLesson,
-                                  courseProvider: courseProvider),
-                              onTap: () async {
-                                if (currentLesson.lessonUrl != null) {
-                                  final courseProvider =
-                                      context.read<CourseProvider>();
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: courseProvider
+                                  .currentCourse!.units[index].lessons.length,
+                              itemBuilder: (context, lessonIndex) {
+                                Lesson currentLesson = courseProvider
+                                    .currentCourse!
+                                    .units[index]
+                                    .lessons[lessonIndex];
 
-                                  await getKey?.betterPlayerController!
-                                      .clearCache();
+                                //
+                                return ListTile(
+                                  dense: true,
+                                  leading: courseProvider.isLessonWatching(
+                                          lessonId: currentLesson.id)
+                                      ? const Icon(
+                                          Icons.pause_circle,
+                                          color: Colors.green,
+                                        )
+                                      : const Icon(Icons.play_circle),
+                                  title: Text(
+                                    currentLesson.title,
+                                  ),
+                                  subtitle: Text(
+                                    currentLesson.downloadModel!.path,
+                                    maxLines: 2,
+                                  ),
+                                  trailing: trailingIcon(
+                                      currentLesson: currentLesson,
+                                      courseProvider: courseProvider),
+                                  onTap: () async {
+                                    if (currentLesson.lessonUrl != null) {
+                                      final courseProvider =
+                                          context.read<CourseProvider>();
 
-                                  getKey?.setupDataSource(courseProvider
-                                      .findDataSourceIndexByLesson(
-                                    lesson: currentLesson,
-                                  ));
+                                      await getKey?.betterPlayerController!
+                                          .clearCache();
 
-                                  courseProvider.setWatchingLesson(
-                                    lesson: currentLesson,
-                                  );
-                                } else {
-                                  log("Lesson URL : null");
-                                }
+                                      getKey?.setupDataSource(courseProvider
+                                          .findDataSourceIndexByLesson(
+                                        lesson: currentLesson,
+                                      ));
+
+                                      courseProvider.setWatchingLesson(
+                                        lesson: currentLesson,
+                                      );
+                                    } else {
+                                      log("Lesson URL : null");
+                                    }
+                                  },
+                                );
                               },
-                            );
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ));
   }
 
   Widget trailingIcon({
@@ -180,7 +162,16 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
         return const Icon(Icons.info);
 
       case DownloadStatus.running:
-        return const Icon(Icons.downloading);
+        return SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            backgroundColor: const Color.fromARGB(255, 206, 205, 205),
+            strokeWidth: 2,
+            color: Colors.green,
+            value: currentLesson.downloadModel!.progress,
+          ),
+        );
 
       case DownloadStatus.waiting:
         return const Icon(Icons.watch_later_rounded);
@@ -238,6 +229,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
               final lesson = courseProvider.findLessonByDataSourceIndex(
                 index: getKey?.currentDataSourceIndex,
               );
+
               courseProvider.setWatchingLesson(lesson: lesson);
 
               final aspectRatio = getKey?.betterPlayerController!
@@ -257,10 +249,10 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
       },
     );
 
-    // betterPlayerPlaylistConfiguration = BetterPlayerPlaylistConfiguration(
-    //   loopVideos: false,
-    //   nextVideoDelay: const Duration(seconds: 5),
-    //   initialStartIndex: lastWatchingIndex,
-    // );
+    betterPlayerPlaylistConfiguration = const BetterPlayerPlaylistConfiguration(
+      loopVideos: false,
+      nextVideoDelay: Duration(seconds: 5),
+      // initialStartIndex: lastWatchingIndex,
+    );
   }
 }

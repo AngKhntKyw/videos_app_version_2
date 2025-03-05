@@ -28,7 +28,7 @@ class DatabaseHelper {
 
   void onCreate(Database db, int version) async {
     await db.execute(
-      "CREATE TABLE Downloads(id INTEGER PRIMARY KEY AUTOINCREMENT, courseId INTEGER, url TEXT, progress REAL, status TEXT, path TEXT)",
+      "CREATE TABLE Downloads(id INTEGER PRIMARY KEY AUTOINCREMENT, courseId INTEGER, lessonTitle TEXT, url TEXT, progress REAL, status TEXT, path TEXT)",
     );
     log("Database just created");
   }
