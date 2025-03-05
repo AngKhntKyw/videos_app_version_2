@@ -23,13 +23,24 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
       betterPlayerPlaylistStateKey.currentState!.betterPlayerPlaylistController;
   late BetterPlayerConfiguration betterPlayerConfiguration;
   late BetterPlayerPlaylistConfiguration betterPlayerPlaylistConfiguration;
+  bool isLoading = true;
 
   //
 
   @override
   void initState() {
-    context.read<CourseProvider>().setUpVideoDataSource(course: widget.course);
-    initBetterPlayer();
+    Future.microtask(
+      () async {
+        await context
+            .read<CourseProvider>()
+            .setUpVideoDataSource(course: widget.course);
+      },
+    ).whenComplete(() {
+      initBetterPlayer();
+      setState(() {
+        isLoading = false;
+      });
+    });
     super.initState();
   }
 
@@ -48,7 +59,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
     final courseProvider = context.watch<CourseProvider>();
     return Scaffold(
         appBar: AppBar(),
-        body: courseProvider.currentCourse == null
+        body: courseProvider.currentCourse == null || isLoading
             ? const Center(
                 child: CircularProgressIndicator(),
               )
@@ -133,6 +144,8 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
 
                                       courseProvider.setWatchingLesson(
                                         lesson: currentLesson,
+                                        index:
+                                            getKey?.currentDataSourceIndex ?? 1,
                                       );
                                     } else {
                                       log("Lesson URL : null");
@@ -230,7 +243,10 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
                 index: getKey?.currentDataSourceIndex,
               );
 
-              courseProvider.setWatchingLesson(lesson: lesson);
+              courseProvider.setWatchingLesson(
+                lesson: lesson,
+                index: getKey?.currentDataSourceIndex ?? 1,
+              );
 
               final aspectRatio = getKey?.betterPlayerController!
                   .videoPlayerController!.value.aspectRatio;
@@ -249,10 +265,10 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
       },
     );
 
-    betterPlayerPlaylistConfiguration = const BetterPlayerPlaylistConfiguration(
+    betterPlayerPlaylistConfiguration = BetterPlayerPlaylistConfiguration(
       loopVideos: false,
-      nextVideoDelay: Duration(seconds: 5),
-      // initialStartIndex: lastWatchingIndex,
+      nextVideoDelay: const Duration(seconds: 5),
+      initialStartIndex: courseProvider.lastWatchingLessonIndex,
     );
   }
 }

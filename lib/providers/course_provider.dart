@@ -27,6 +27,9 @@ class CourseProvider with ChangeNotifier {
   Lesson? _watchingLesson;
   Lesson? get watchingLesson => _watchingLesson;
 
+  int _lastWatchingLassonIndex = 0;
+  int get lastWatchingLessonIndex => _lastWatchingLassonIndex;
+
   final DatabaseHelper databaseHelper = DatabaseHelper.instance;
 
   // List<DownloadModel> _downloadModels = [];
@@ -41,12 +44,13 @@ class CourseProvider with ChangeNotifier {
   //
   Future<List<DownloadModel>> getDownloads() async {
     final result = await databaseHelper.getDownloads();
+
     // _downloadModels = result;
     notifyListeners();
     return result;
   }
 
-  void setUpVideoDataSource({required Course course}) async {
+  Future<void> setUpVideoDataSource({required Course course}) async {
     _currentCourse = course;
     _dataSourceList.clear();
     _videoLessons.clear();
@@ -74,12 +78,18 @@ class CourseProvider with ChangeNotifier {
   Future<void> updataDatasource({required Lesson lesson}) async {
     // DownloadModel downloadModel = await checkIsDownloaded(lesson: lesson);
     if (lesson.downloadModel!.status == DownloadStatus.success) {
-      int datasourceIndex = findDataSourceIndexByLesson(lesson: lesson);
+      int datasourceIndex =
+          findDatasourceIndexToUpdateDatasource(lesson: lesson);
       log("index $datasourceIndex");
       _dataSourceList[datasourceIndex] =
           BetterPlayerDataSource.file(lesson.downloadModel!.path);
     }
     notifyListeners();
+  }
+
+  int findDatasourceIndexToUpdateDatasource({required Lesson lesson}) {
+    return _dataSourceList
+        .indexWhere((element) => element.url == lesson.lessonUrl);
   }
 
   Future<void> updateCourseWithDownloadStatus() async {
@@ -124,9 +134,10 @@ class CourseProvider with ChangeNotifier {
     log("Datasource : ${_dataSourceList[1].url}");
     log("Lesson url : ${lesson.lessonUrl}");
     log("Lesson DownloadModel : ${lesson.downloadModel?.status.name}");
+
     if (lesson.downloadModel!.status == DownloadStatus.success) {
       return _dataSourceList
-          .indexWhere((element) => element.url == lesson.downloadModel!.path);
+          .indexWhere((element) => element.url == (lesson.downloadModel!.path));
     } else {
       return _dataSourceList
           .indexWhere((element) => element.url == lesson.lessonUrl);
@@ -155,8 +166,10 @@ class CourseProvider with ChangeNotifier {
     return false;
   }
 
-  void setWatchingLesson({required Lesson lesson}) async {
+  void setWatchingLesson({required Lesson lesson, required int index}) async {
     _watchingLesson = lesson;
+    _lastWatchingLassonIndex = index;
+    log("Index sdafas $_lastWatchingLassonIndex");
     notifyListeners();
   }
 
