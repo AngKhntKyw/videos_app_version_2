@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:videos_app_version_2/core/model/course.dart';
 import 'package:videos_app_version_2/courses/courses.dart';
 import 'package:videos_app_version_2/pages/course_detail_page.dart';
@@ -13,6 +14,25 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isGridView = false;
+
+  Future<void> _loadViewPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isGridView = prefs.getBool('isGridView') ?? false;
+    });
+  }
+
+  Future<void> _saveViewPreference(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isGridView', value);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadViewPreference();
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Course> courses =
@@ -27,7 +47,10 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               {
                 setState(() {
-                  isGridView = !isGridView;
+                  setState(() {
+                    isGridView = !isGridView;
+                    _saveViewPreference(isGridView);
+                  });
                 });
               }
             },
