@@ -11,10 +11,6 @@ import 'package:videos_app_version_2/providers/database_helper.dart';
 import 'package:videos_app_version_2/providers/m3u8_downloader.dart';
 
 class CourseProvider with ChangeNotifier {
-  CourseProvider() {
-    initDownloads();
-  }
-
   //
   Course? _currentCourse;
   Course? get currentCourse => _currentCourse;
@@ -25,8 +21,8 @@ class CourseProvider with ChangeNotifier {
   List<Lesson> _videoLessons = [];
   List<Lesson> get videoLessons => _videoLessons;
 
-  Lesson? _watchingLesson;
-  Lesson? get watchingLesson => _watchingLesson;
+  Map<String, Lesson> _watchingLesson = {};
+  Map<String, Lesson> get watchingLesson => _watchingLesson;
 
   int _lastWatchingLassonIndex = 0;
   int get lastWatchingLessonIndex => _lastWatchingLassonIndex;
@@ -37,22 +33,13 @@ class CourseProvider with ChangeNotifier {
   DownloadModel? _currentDownloading;
   DownloadModel? get currentDownloading => _currentDownloading;
 
-  // List<DownloadModel> _downloadModels = [];
-  // List<DownloadModel> get downloadModels => _downloadModels;
-
-  //
-
   Future<void> initDownloads() async {
     await getDownloads();
   }
 
   //
   Future<List<DownloadModel>> getDownloads() async {
-    final result = await databaseHelper.getDownloads();
-
-    // _downloadModels = result;
-    notifyListeners();
-    return result;
+    return await databaseHelper.getDownloads();
   }
 
   Future<void> setUpVideoDataSource({required Course course}) async {
@@ -76,18 +63,15 @@ class CourseProvider with ChangeNotifier {
       _dataSourceList.add(datasource);
     }
     await updateCourseWithDownloadStatus();
-    getLastWatchingLessonIndex();
+    getLastWatchingLessonIndex(courseId: "${_currentCourse!.id}");
 
     //
   }
 
   Future<void> updataDatasource({required Lesson lesson}) async {
-    // DownloadModel downloadModel = await checkIsDownloaded(lesson: lesson);
-    log("Lesson status : ${lesson.downloadModel!.status}");
     if (lesson.downloadModel!.status == DownloadStatus.success) {
       int datasourceIndex =
           findDatasourceIndexToUpdateDatasource(lesson: lesson);
-      log("index $datasourceIndex");
       _dataSourceList[datasourceIndex] =
           BetterPlayerDataSource.file(lesson.downloadModel!.path);
     }
@@ -95,11 +79,6 @@ class CourseProvider with ChangeNotifier {
   }
 
   int findDatasourceIndexToUpdateDatasource({required Lesson lesson}) {
-    log("Datasource 0 :${_dataSourceList[0].url}");
-    log("Datasource 1 :${_dataSourceList[1].url}");
-    log("Datasource 2 :${_dataSourceList[2].url}");
-    log("Lesson URL : ${lesson.lessonUrl}");
-
     return _dataSourceList
         .indexWhere((element) => element.url == lesson.lessonUrl);
   }
@@ -143,10 +122,6 @@ class CourseProvider with ChangeNotifier {
 
 //
   int findDataSourceIndexByLesson({required Lesson lesson}) {
-    log("Datasource : ${_dataSourceList[1].url}");
-    log("Lesson url : ${lesson.lessonUrl}");
-    log("Lesson DownloadModel : ${lesson.downloadModel?.status.name}");
-
     if (lesson.downloadModel!.status == DownloadStatus.success) {
       return _dataSourceList
           .indexWhere((element) => element.url == (lesson.downloadModel!.path));
@@ -157,9 +132,15 @@ class CourseProvider with ChangeNotifier {
   }
 
   Lesson findLessonByDataSourceIndex({required int? index}) {
-    return _videoLessons.firstWhere(
-        (element) => _dataSourceList[index!].url == element.lessonUrl,
-        orElse: () => _videoLessons.first);
+    return _currentCourse!.units
+        .where((e) => e.lessons.isNotEmpty)
+        .expand((unit) => unit.lessons)
+        .firstWhere((lesson) => lesson.lessonUrl == _dataSourceList[index!].url,
+            orElse: () => _currentCourse!.units
+                .where((e) => e.lessons.isNotEmpty)
+                .expand((unit) => unit.lessons)
+                .firstWhere((lesson) =>
+                    lesson.downloadModel!.path == _dataSourceList[index!].url));
   }
 
   Lesson getLessonByDownloadModelId({required DownloadModel downloadModel}) {
@@ -171,29 +152,32 @@ class CourseProvider with ChangeNotifier {
         .firstWhere((element) => element.id == downloadModel.id);
   }
 
-  bool isLessonWatching({required int lessonId}) {
-    if (_watchingLesson != null) {
-      return _watchingLesson!.id == lessonId;
+  bool isLessonWatching({required int lessonId, required String courseId}) {
+    if (_watchingLesson.isNotEmpty) {
+      return _watchingLesson[courseId]?.id == lessonId;
     }
     return false;
   }
 
-  void getLastWatchingLessonIndex() {
-    _lastWatchingLassonIndex = _watchingLesson == null
+  void getLastWatchingLessonIndex({required String courseId}) {
+    log("${_watchingLesson[courseId]}");
+
+    _lastWatchingLassonIndex = _watchingLesson[courseId] == null
         ? 0
-        : _watchingLesson!.downloadModel == null
-            ? _dataSourceList.indexWhere(
-                (element) => element.url == _watchingLesson!.lessonUrl)
+        : _watchingLesson[courseId]!.downloadModel!.status ==
+                DownloadStatus.none
+            ? _dataSourceList.indexWhere((element) =>
+                element.url == _watchingLesson[courseId]!.lessonUrl)
             : _dataSourceList.indexWhere(
                 (element) =>
-                    element.url == _watchingLesson!.downloadModel!.path,
+                    element.url ==
+                    _watchingLesson[courseId]!.downloadModel!.path,
               );
-    notifyListeners();
   }
 
-  void setWatchingLesson({required Lesson lesson, required int index}) async {
-    _watchingLesson = lesson;
-    _lastWatchingLassonIndex = index;
+  void setWatchingLesson(
+      {required Lesson lesson, required String courseId}) async {
+    _watchingLesson[courseId] = lesson;
     notifyListeners();
   }
 
@@ -210,16 +194,13 @@ class CourseProvider with ChangeNotifier {
 
     await databaseHelper.createDownload(downloadModel: downloadModel);
     await updateCourseWithDownloadStatus();
-    // await updataDatasource(lesson: lesson);
-    //
+
     _currentDownloading == null ? await queueDownload() : null;
 
     //
   }
 
   Future<void> queueDownload() async {
-    log("queue downloading...");
-
     List<DownloadModel> downloadModels = await databaseHelper.getDownloads();
     List<DownloadModel> waitingDownloadModels = downloadModels
         .where((d) => d.status == DownloadStatus.waiting)
@@ -228,26 +209,16 @@ class CourseProvider with ChangeNotifier {
     //
     if (waitingDownloadModels.isEmpty) return;
 
-    // for (final download in waitingDownloadModels) {
-    //   await startDownloading(downloadModel: download);
-    // }
     await startDownloading(downloadModel: waitingDownloadModels.first);
     await queueDownload();
   }
 
   Future<void> startDownloading({required DownloadModel downloadModel}) async {
     _currentDownloading = downloadModel;
-    // await Future.delayed(const Duration(seconds: 3));
-    log("start downloading...");
 
     downloadModel = downloadModel.copyWith(status: DownloadStatus.running);
     await databaseHelper.updateDownload(download: downloadModel);
     await updateCourseWithDownloadStatus();
-    final lesson = getLessonByDownloadModelId(downloadModel: downloadModel);
-    // await updataDatasource(lesson: lesson);
-
-    //
-    await Future.delayed(const Duration(seconds: 3));
 
     //
     final localPath = await m3u8Downloader.download(
@@ -265,17 +236,6 @@ class CourseProvider with ChangeNotifier {
       path: localPath ?? "",
       progress: localPath != null ? 1.0 : downloadModel.progress,
     );
-
-    //
-    // downloadModel = DownloadModel(
-    //   id: lesson.id,
-    //   courseId: _currentCourse!.id,
-    //   lessonTitle: lesson.title,
-    //   url: lesson.lessonUrl!,
-    //   path: 'downloaded path',
-    //   progress: 1,
-    //   status: DownloadStatus.success,
-    // );
 
     await databaseHelper.updateDownload(download: downloadModel);
     await updateCourseWithDownloadStatus();
@@ -295,6 +255,5 @@ class CourseProvider with ChangeNotifier {
     _dataSourceList.clear();
     _videoLessons.clear();
     _currentCourse = null;
-    _watchingLesson = null;
   }
 }

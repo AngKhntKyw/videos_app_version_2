@@ -112,17 +112,16 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
                                 return ListTile(
                                   dense: true,
                                   leading: courseProvider.isLessonWatching(
-                                          lessonId: currentLesson.id)
+                                          lessonId: currentLesson.id,
+                                          courseId: "${widget.course.id}")
                                       ? const Icon(
                                           Icons.pause_circle,
                                           color: Colors.green,
                                         )
                                       : const Icon(Icons.play_circle),
-                                  title: Text(
-                                    currentLesson.title,
-                                  ),
+                                  title: Text(currentLesson.title),
                                   subtitle: Text(
-                                    currentLesson.downloadModel!.path,
+                                    currentLesson.description,
                                     maxLines: 2,
                                   ),
                                   trailing: trailingIcon(
@@ -140,12 +139,6 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
                                           .findDataSourceIndexByLesson(
                                         lesson: currentLesson,
                                       ));
-
-                                      courseProvider.setWatchingLesson(
-                                        lesson: currentLesson,
-                                        index:
-                                            getKey?.currentDataSourceIndex ?? 1,
-                                      );
                                     } else {
                                       log("Lesson URL : null");
                                     }
@@ -243,12 +236,11 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
               );
 
               courseProvider.setWatchingLesson(
-                lesson: lesson,
-                index: getKey?.currentDataSourceIndex ?? 1,
-              );
+                  lesson: lesson, courseId: "${widget.course.id}");
 
               final aspectRatio = getKey?.betterPlayerController!
                   .videoPlayerController!.value.aspectRatio;
+
               getKey?.betterPlayerController!
                   .setOverriddenAspectRatio(aspectRatio!);
             }
@@ -264,7 +256,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
       },
     );
 
-    betterPlayerPlaylistConfiguration = const BetterPlayerPlaylistConfiguration(
+    betterPlayerPlaylistConfiguration = BetterPlayerPlaylistConfiguration(
       loopVideos: false,
       nextVideoDelay: const Duration(seconds: 5),
       // initialStartIndex: courseProvider.lastWatchingLessonIndex,
