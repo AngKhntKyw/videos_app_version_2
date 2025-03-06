@@ -8,6 +8,7 @@ import 'package:videos_app_version_2/core/model/download_model.dart';
 import 'package:videos_app_version_2/core/model/lesson.dart';
 import 'package:videos_app_version_2/core/model/unit.dart';
 import 'package:videos_app_version_2/providers/database_helper.dart';
+import 'package:videos_app_version_2/providers/m3u8_downloader.dart';
 
 class CourseProvider with ChangeNotifier {
   CourseProvider() {
@@ -31,6 +32,10 @@ class CourseProvider with ChangeNotifier {
   int get lastWatchingLessonIndex => _lastWatchingLassonIndex;
 
   final DatabaseHelper databaseHelper = DatabaseHelper.instance;
+  final M3U8Downloader m3u8Downloader = M3U8Downloader();
+
+  DownloadModel? _currentDownloading;
+  DownloadModel? get currentDownloading => _currentDownloading;
 
   // List<DownloadModel> _downloadModels = [];
   // List<DownloadModel> get downloadModels => _downloadModels;
@@ -71,12 +76,14 @@ class CourseProvider with ChangeNotifier {
       _dataSourceList.add(datasource);
     }
     await updateCourseWithDownloadStatus();
+    getLastWatchingLessonIndex();
 
     //
   }
 
   Future<void> updataDatasource({required Lesson lesson}) async {
     // DownloadModel downloadModel = await checkIsDownloaded(lesson: lesson);
+    log("Lesson status : ${lesson.downloadModel!.status}");
     if (lesson.downloadModel!.status == DownloadStatus.success) {
       int datasourceIndex =
           findDatasourceIndexToUpdateDatasource(lesson: lesson);
@@ -88,6 +95,11 @@ class CourseProvider with ChangeNotifier {
   }
 
   int findDatasourceIndexToUpdateDatasource({required Lesson lesson}) {
+    log("Datasource 0 :${_dataSourceList[0].url}");
+    log("Datasource 1 :${_dataSourceList[1].url}");
+    log("Datasource 2 :${_dataSourceList[2].url}");
+    log("Lesson URL : ${lesson.lessonUrl}");
+
     return _dataSourceList
         .indexWhere((element) => element.url == lesson.lessonUrl);
   }
@@ -166,10 +178,22 @@ class CourseProvider with ChangeNotifier {
     return false;
   }
 
+  void getLastWatchingLessonIndex() {
+    _lastWatchingLassonIndex = _watchingLesson == null
+        ? 0
+        : _watchingLesson!.downloadModel == null
+            ? _dataSourceList.indexWhere(
+                (element) => element.url == _watchingLesson!.lessonUrl)
+            : _dataSourceList.indexWhere(
+                (element) =>
+                    element.url == _watchingLesson!.downloadModel!.path,
+              );
+    notifyListeners();
+  }
+
   void setWatchingLesson({required Lesson lesson, required int index}) async {
     _watchingLesson = lesson;
     _lastWatchingLassonIndex = index;
-    log("Index sdafas $_lastWatchingLassonIndex");
     notifyListeners();
   }
 
@@ -186,9 +210,9 @@ class CourseProvider with ChangeNotifier {
 
     await databaseHelper.createDownload(downloadModel: downloadModel);
     await updateCourseWithDownloadStatus();
-    await updataDatasource(lesson: lesson);
+    // await updataDatasource(lesson: lesson);
     //
-    await queueDownload();
+    _currentDownloading == null ? await queueDownload() : null;
 
     //
   }
@@ -204,36 +228,54 @@ class CourseProvider with ChangeNotifier {
     //
     if (waitingDownloadModels.isEmpty) return;
 
-    for (final download in waitingDownloadModels) {
-      await startDownloading(downloadModel: download);
-    }
-
+    // for (final download in waitingDownloadModels) {
+    //   await startDownloading(downloadModel: download);
+    // }
+    await startDownloading(downloadModel: waitingDownloadModels.first);
     await queueDownload();
   }
 
   Future<void> startDownloading({required DownloadModel downloadModel}) async {
-    await Future.delayed(const Duration(seconds: 3));
+    _currentDownloading = downloadModel;
+    // await Future.delayed(const Duration(seconds: 3));
     log("start downloading...");
 
     downloadModel = downloadModel.copyWith(status: DownloadStatus.running);
     await databaseHelper.updateDownload(download: downloadModel);
     await updateCourseWithDownloadStatus();
     final lesson = getLessonByDownloadModelId(downloadModel: downloadModel);
-    await updataDatasource(lesson: lesson);
+    // await updataDatasource(lesson: lesson);
 
     //
     await Future.delayed(const Duration(seconds: 3));
 
     //
-    downloadModel = DownloadModel(
-      id: lesson.id,
-      courseId: _currentCourse!.id,
-      lessonTitle: lesson.title,
-      url: lesson.lessonUrl!,
-      path: 'downloaded path',
-      progress: 1,
-      status: DownloadStatus.success,
+    final localPath = await m3u8Downloader.download(
+      url: downloadModel.url,
+      lessonTitle: downloadModel.lessonTitle,
+      onProgress: (progress) async {
+        downloadModel = downloadModel.copyWith(progress: progress);
+        await databaseHelper.updateDownload(download: downloadModel);
+        await updateCourseWithDownloadStatus();
+      },
     );
+
+    downloadModel = downloadModel.copyWith(
+      status: localPath != null ? DownloadStatus.success : DownloadStatus.fail,
+      path: localPath ?? "",
+      progress: localPath != null ? 1.0 : downloadModel.progress,
+    );
+
+    //
+    // downloadModel = DownloadModel(
+    //   id: lesson.id,
+    //   courseId: _currentCourse!.id,
+    //   lessonTitle: lesson.title,
+    //   url: lesson.lessonUrl!,
+    //   path: 'downloaded path',
+    //   progress: 1,
+    //   status: DownloadStatus.success,
+    // );
 
     await databaseHelper.updateDownload(download: downloadModel);
     await updateCourseWithDownloadStatus();
@@ -241,6 +283,8 @@ class CourseProvider with ChangeNotifier {
     final updatedLesson =
         getLessonByDownloadModelId(downloadModel: downloadModel);
     await updataDatasource(lesson: updatedLesson);
+    _currentDownloading = null;
+    notifyListeners();
   }
 
   Future<void> deleteLocalDatabase() async {

@@ -64,6 +64,7 @@ class M3U8Downloader {
           double progressPercentage =
               (currentTime / totalDuration).clamp(0.0, 1.0);
           onProgress?.call(progressPercentage);
+          log(progressPercentage.toString());
         }
       },
     );

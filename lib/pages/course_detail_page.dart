@@ -75,7 +75,6 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
                   ),
                   Expanded(
                     child: ListView.builder(
-                      // physics: const NeverScrollableScrollPhysics(),
                       itemCount: courseProvider.currentCourse!.units.length,
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
@@ -265,10 +264,10 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
       },
     );
 
-    betterPlayerPlaylistConfiguration = BetterPlayerPlaylistConfiguration(
+    betterPlayerPlaylistConfiguration = const BetterPlayerPlaylistConfiguration(
       loopVideos: false,
       nextVideoDelay: const Duration(seconds: 5),
-      initialStartIndex: courseProvider.lastWatchingLessonIndex,
+      // initialStartIndex: courseProvider.lastWatchingLessonIndex,
     );
   }
 }
