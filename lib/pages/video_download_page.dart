@@ -1,15 +1,9 @@
 import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dio/dio.dart';
+import 'package:direct_link/direct_link.dart';
 import 'package:extractor/extractor.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:videos_app_version_2/core/enum/video_type.dart';
-import 'package:videos_app_version_2/core/model/video_download.dart';
-import 'package:videos_app_version_2/core/model/video_quality.dart';
 import 'package:videos_app_version_2/repository/video_downloader_repository.dart';
 
 class VideoDownloadPage extends StatefulWidget {
@@ -30,9 +24,125 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
   // String fileName = '';
   // bool isSearching = false;
   // VideoType videoType = VideoType.none;
-  VideoData? videoData;
+  SiteModel? videoData;
   int selectedLinkIndex = 0;
   bool isSearching = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Download"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Center(
+          child: ListView(
+            children: [
+              TextField(
+                controller: textController,
+                decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            textController.clear();
+                          });
+                        },
+                        icon: const Icon(Icons.close))),
+              ),
+              SizedBox(height: MediaQuery.sizeOf(context).height / 40),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(20),
+                    fixedSize: Size.fromWidth(MediaQuery.sizeOf(context).width),
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4))),
+                onPressed: () async {
+                  FocusManager.instance.primaryFocus!.unfocus();
+                  setState(() {
+                    isSearching = true;
+                  });
+                  final result = await VideoDownloaderRepository()
+                      .getAvailableVideos(url: textController.text);
+                  log("Result status ${result!}");
+                  setState(() {
+                    videoData = result;
+                    isSearching = false;
+                  });
+                },
+                child: const Text("Check Link"),
+              ),
+              SizedBox(height: MediaQuery.sizeOf(context).height / 40),
+
+              //
+              isSearching
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : videoData == null
+                      ? const Text("Video data is null")
+                      : Text(
+                          videoData!.title ?? "No name",
+                        ),
+
+              //
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// videoData!.status == true
+//                           ? Column(
+//                               crossAxisAlignment: CrossAxisAlignment.start,
+//                               children: [
+//                                 Text("${videoData!.message}"),
+//                                 Text(videoData!.title!),
+//                                 Text(videoData!.duration!),
+//                                 CachedNetworkImage(
+//                                     imageUrl: videoData!.thumbnail ?? ""),
+//                                 ListView.builder(
+//                                   physics: const NeverScrollableScrollPhysics(),
+//                                   shrinkWrap: true,
+//                                   itemCount: videoData!.links!.length,
+//                                   itemBuilder: (context, index) {
+//                                     final video = videoData!.links![index];
+//                                     return RadioListTile<int>(
+//                                       value: index,
+//                                       groupValue: selectedLinkIndex,
+//                                       onChanged: (int? value) {
+//                                         setState(() {
+//                                           selectedLinkIndex = value!;
+//                                         });
+//                                       },
+//                                       title: Text(video.text ?? "Video $index"),
+//                                     );
+//                                   },
+//                                 ),
+//                                 ElevatedButton(
+//                                   style: ElevatedButton.styleFrom(
+//                                     padding: const EdgeInsets.all(20),
+//                                     fixedSize: Size.fromWidth(
+//                                         MediaQuery.sizeOf(context).width),
+//                                     backgroundColor: Colors.green,
+//                                     foregroundColor: Colors.white,
+//                                     shape: RoundedRectangleBorder(
+//                                       borderRadius: BorderRadius.circular(4),
+//                                     ),
+//                                   ),
+//                                   onPressed: () async {},
+//                                   child: const Text("Download"),
+//                                 ),
+//                               ],
+//                             )
+//                           : const Text("Fail"),
+
+
 
   // IconData? get _getBrandIcon {
   //   switch (videoType) {
@@ -133,104 +243,3 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
   //     }
   //   }
   // }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Download"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: textController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: MediaQuery.sizeOf(context).height / 40),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(20),
-                      fixedSize:
-                          Size.fromWidth(MediaQuery.sizeOf(context).width),
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4))),
-                  onPressed: () async {
-                    FocusManager.instance.primaryFocus!.unfocus();
-                    setState(() {
-                      isSearching = true;
-                    });
-                    final result = await VideoDownloaderRepository()
-                        .getAvailableVideos(url: textController.text);
-                    setState(() {
-                      videoData = result;
-                      isSearching = false;
-                    });
-                  },
-                  child: const Text("Check Link"),
-                ),
-                SizedBox(height: MediaQuery.sizeOf(context).height / 40),
-
-                //
-                videoData != null && videoData!.status == true
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("${videoData!.message}"),
-                          Text(videoData!.title!),
-                          Text(videoData!.duration!),
-                          CachedNetworkImage(
-                              imageUrl: videoData!.thumbnail ?? ""),
-                          ListView.builder(
-                            physics: const NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: videoData!.links!.length,
-                            itemBuilder: (context, index) {
-                              final video = videoData!.links![index];
-                              return RadioListTile<int>(
-                                value: index,
-                                groupValue: selectedLinkIndex,
-                                onChanged: (int? value) {
-                                  setState(() {
-                                    selectedLinkIndex = value!;
-                                  });
-                                },
-                                title: Text(video.text ?? "Video $index"),
-                              );
-                            },
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.all(20),
-                                fixedSize: Size.fromWidth(
-                                    MediaQuery.sizeOf(context).width),
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4))),
-                            onPressed: () async {},
-                            child: const Text("Download"),
-                          ),
-                        ],
-                      )
-                    : isSearching
-                        ? const Center(
-                            child: CircularProgressIndicator(),
-                          )
-                        : Text(videoData != null ? videoData!.message! : "null")
-                //
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

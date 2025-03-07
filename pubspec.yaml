@@ -47,6 +47,7 @@ dependencies:
   shared_preferences: ^2.2.3
   badges: ^2.0.3
   extractor: ^0.0.3
+  direct_link: ^0.2.2
   file_manager: ^1.0.2
   dio: ^5.4.3
   permission_handler: ^11.3.0

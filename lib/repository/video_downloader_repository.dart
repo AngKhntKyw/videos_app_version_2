@@ -1,26 +1,19 @@
 import 'dart:developer';
-import 'package:videos_app_version_2/core/model/video_download.dart';
 import 'package:extractor/extractor.dart';
-import 'package:videos_app_version_2/core/model/video_quality.dart';
+import 'package:direct_link/direct_link.dart';
 
 class VideoDownloaderRepository {
-  Future<VideoData?> getAvailableVideos({required String url}) async {
+  Future<SiteModel?> getAvailableVideos({required String url}) async {
+    log("URL $url");
     try {
-      final response = await Extractor.getDirectLink(link: url);
+      // final response = await Extractor.getDirectLink(link: url);
+      // if (response != null) {
+      //   return response;
 
-      if (response != null) {
-        return response;
-        //     return VideoDownload.fromJson({
-        //   "title": response.title,
-        //   "source": response.links?.first.href,
-        //   "thumbnail": response.thumbnail,
-        //   "videos": [
-        //     VideoQuality(
-        //       url: response.links?.first.href,
-        //       quality: "720",
-        //     ),
-        //   ],
-        // });
+      var directLink = DirectLink();
+      var data = await directLink.check('url');
+      if (data != null) {
+        return data;
       } else {
         return null;
       }
