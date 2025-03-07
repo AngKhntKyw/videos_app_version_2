@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:videos_app_version_2/core/model/course.dart';
 import 'package:videos_app_version_2/courses/courses.dart';
 import 'package:videos_app_version_2/pages/course_detail_page.dart';
+import 'package:badges/badges.dart' as badges;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -170,50 +171,65 @@ class GridViewCourseCard extends StatelessWidget {
           ),
         );
       },
-      child: Container(
-        clipBehavior: Clip.hardEdge,
-        margin: const EdgeInsets.all(8),
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black26),
-          borderRadius: BorderRadius.circular(6),
+      child: badges.Badge(
+        position: badges.BadgePosition.topEnd(top: 0, end: 0),
+        badgeContent: const Text(
+          'Hot',
+          style: TextStyle(color: Colors.white, fontSize: 10),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(2),
-                child: CachedNetworkImage(
-                  imageUrl: course.imgUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
+        animationType: badges.BadgeAnimationType.slide,
+        alignment: Alignment.topRight,
+        animationDuration: const Duration(seconds: 5),
+        badgeColor: Colors.green,
+        ignorePointer: true,
+        toAnimate: true,
+        shape: badges.BadgeShape.circle,
+        stackFit: StackFit.loose,
+        child: Container(
+          clipBehavior: Clip.hardEdge,
+          margin: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black26),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: CachedNetworkImage(
+                    imageUrl: course.imgUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    course.title,
-                    maxLines: 2,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  Text(
-                    "${course.price}",
-                    maxLines: 1,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      course.title,
+                      maxLines: 2,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    Text(
+                      "${course.price}",
+                      maxLines: 1,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

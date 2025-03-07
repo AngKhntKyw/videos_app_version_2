@@ -256,9 +256,9 @@ class _CourseDetailPageState extends State<CourseDetailPage> with RouteAware {
       },
     );
 
-    betterPlayerPlaylistConfiguration = BetterPlayerPlaylistConfiguration(
+    betterPlayerPlaylistConfiguration = const BetterPlayerPlaylistConfiguration(
       loopVideos: false,
-      nextVideoDelay: const Duration(seconds: 5),
+      nextVideoDelay: Duration(seconds: 5),
       // initialStartIndex: courseProvider.lastWatchingLessonIndex,
     );
   }

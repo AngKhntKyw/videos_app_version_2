@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:videos_app_version_2/pages/home_page.dart';
-import 'package:videos_app_version_2/pages/local_data_storage_page.dart';
+import 'package:videos_app_version_2/pages/video_download_page.dart';
 
 class NavigationBarPage extends StatefulWidget {
   const NavigationBarPage({super.key});
@@ -13,7 +13,7 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
   int screenIndex = 0;
   final screens = [
     const HomePage(),
-    const LocalDataStoragePage(),
+    const VideoDownloadPage(),
   ];
   @override
   Widget build(BuildContext context) {

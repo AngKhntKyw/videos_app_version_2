@@ -21,7 +21,7 @@ class CourseProvider with ChangeNotifier {
   List<Lesson> _videoLessons = [];
   List<Lesson> get videoLessons => _videoLessons;
 
-  Map<String, Lesson> _watchingLesson = {};
+  final Map<String, Lesson> _watchingLesson = {};
   Map<String, Lesson> get watchingLesson => _watchingLesson;
 
   int _lastWatchingLassonIndex = 0;
@@ -196,8 +196,6 @@ class CourseProvider with ChangeNotifier {
     await updateCourseWithDownloadStatus();
 
     _currentDownloading == null ? await queueDownload() : null;
-
-    //
   }
 
   Future<void> queueDownload() async {
