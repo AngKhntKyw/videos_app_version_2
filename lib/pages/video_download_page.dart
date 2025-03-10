@@ -1,6 +1,8 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
+import 'package:direct_link/direct_link.dart';
 import 'package:extractor/extractor.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -17,7 +19,7 @@ class VideoDownloadPage extends StatefulWidget {
 
 class _VideoDownloadPageState extends State<VideoDownloadPage> {
   final textController = TextEditingController();
-  VideoData? videoData;
+  SiteModel? videoData;
   int selectedLinkIndex = 0;
   bool isSearching = false;
   bool isDownloading = false;
@@ -27,10 +29,11 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
   Future<void> performDownloading(String url) async {
     log("Download URL :$url");
     Dio dio = Dio();
-    var permissions = await [Permission.storage].request();
+    var permissions =
+        await [Permission.storage, Permission.manageExternalStorage].request();
 
-    if (permissions[Permission.storage]!.isGranted) {
-      var dir = await getApplicationDocumentsDirectory();
+    if (permissions[Permission.manageExternalStorage]!.isGranted) {
+      Directory? dir = Directory('/storage/emulated/0/Download');
       setState(() {
         fileName =
             "/video-${DateFormat("yyyyMMddHmmss").format(DateTime.now())}.mp4";
@@ -64,14 +67,25 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
 
         setState(() => isDownloading = false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Download failed")),
-        );
+        ScaffoldMessenger.of(context).showMaterialBanner(
+            MaterialBanner(content: const Text("Download fails"), actions: [
+          TextButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+              },
+              child: const Text("OK"))
+        ]));
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Storage permission denied")),
-      );
+      ScaffoldMessenger.of(context).showMaterialBanner(MaterialBanner(
+          content: const Text("Storage permission denied"),
+          actions: [
+            TextButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+                },
+                child: const Text("OK"))
+          ]));
     }
   }
 
@@ -123,7 +137,7 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
                         try {
                           final result = await VideoDownloaderRepository()
                               .getAvailableVideos(url: textController.text);
-                          if (result != null && result.status == true) {
+                          if (result != null) {
                             log("Result: ${result.title}");
                             setState(() {
                               videoData = result;
@@ -150,7 +164,7 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(videoData!.title ?? "No name"),
-                            Text(videoData!.message ?? "No message"),
+                            // Text(videoData!.message ?? "No message"),
                             Text(videoData!.duration ?? "No duration"),
                             CachedNetworkImage(
                               imageUrl: videoData!.thumbnail ?? "",
@@ -175,7 +189,7 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
                                             selectedLinkIndex = value!;
                                           });
                                         },
-                                  title: Text(video.text ?? "Video $index"),
+                                  title: Text(video.type ?? "Video $index"),
                                 );
                               },
                             ),
@@ -201,7 +215,7 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
                                   : () async {
                                       final selectedLink =
                                           videoData!.links![selectedLinkIndex];
-                                      final downloadUrl = selectedLink.href;
+                                      final downloadUrl = selectedLink.link;
                                       if (downloadUrl != null) {
                                         await performDownloading(downloadUrl);
                                       } else {
@@ -224,161 +238,3 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
     );
   }
 }
-
-
-  // double progressValue = 0;
-  // bool isDownloading = false;
-  // List<VideoQuality> qualities = [];
-  // VideoDownload? video;
-  // bool isLoading = false;
-  // int selectedQualityIndex = 0;
-  // String fileName = '';
-  // bool isSearching = false;
-  // VideoType videoType = VideoType.none;
-
-// videoData!.status == true
-//                           ? Column(
-//                               crossAxisAlignment: CrossAxisAlignment.start,
-//                               children: [
-//                                 Text("${videoData!.message}"),
-//                                 Text(videoData!.title!),
-//                                 Text(videoData!.duration!),
-//                                 CachedNetworkImage(
-//                                     imageUrl: videoData!.thumbnail ?? ""),
-//                                 ListView.builder(
-//                                   physics: const NeverScrollableScrollPhysics(),
-//                                   shrinkWrap: true,
-//                                   itemCount: videoData!.links!.length,
-//                                   itemBuilder: (context, index) {
-//                                     final video = videoData!.links![index];
-//                                     return RadioListTile<int>(
-//                                       value: index,
-//                                       groupValue: selectedLinkIndex,
-//                                       onChanged: (int? value) {
-//                                         setState(() {
-//                                           selectedLinkIndex = value!;
-//                                         });
-//                                       },
-//                                       title: Text(video.text ?? "Video $index"),
-//                                     );
-//                                   },
-//                                 ),
-//                                 ElevatedButton(
-//                                   style: ElevatedButton.styleFrom(
-//                                     padding: const EdgeInsets.all(20),
-//                                     fixedSize: Size.fromWidth(
-//                                         MediaQuery.sizeOf(context).width),
-//                                     backgroundColor: Colors.green,
-//                                     foregroundColor: Colors.white,
-//                                     shape: RoundedRectangleBorder(
-//                                       borderRadius: BorderRadius.circular(4),
-//                                     ),
-//                                   ),
-//                                   onPressed: () async {},
-//                                   child: const Text("Download"),
-//                                 ),
-//                               ],
-//                             )
-//                           : const Text("Fail"),
-
-
-
-  // IconData? get _getBrandIcon {
-  //   switch (videoType) {
-  //     case VideoType.facebook:
-  //       return Icons.facebook;
-  //     case VideoType.instagram:
-  //       return Icons.g_mobiledata;
-  //     case VideoType.tiktok:
-  //       return Icons.tiktok;
-  //     case VideoType.youtube:
-  //       return Icons.video_collection;
-  //     case VideoType.twitter:
-  //       return Icons.tab;
-  //     case VideoType.none:
-  //       return Icons.note_outlined;
-  //     default:
-  //       return null;
-  //   }
-  // }
-
-  // String? get _getFilePrefix {
-  //   switch (videoType) {
-  //     case VideoType.facebook:
-  //       return "facebook";
-  //     case VideoType.instagram:
-  //       return "instagram";
-  //     case VideoType.tiktok:
-  //       return "tiktok";
-  //     case VideoType.youtube:
-  //       return "youtube";
-  //     case VideoType.twitter:
-  //       return "twitter";
-  //     case VideoType.none:
-  //       return "none";
-  //     default:
-  //       return null;
-  //   }
-  // }
-
-  // void setVideoType(String url) {
-  //   if (url.isEmpty) {
-  //     setState(() => videoType = VideoType.none);
-  //   } else if (url.contains("facebook.com") || url.contains("fb.watch")) {
-  //     setState(() => videoType = VideoType.facebook);
-  //   } else if (url.contains("youtube.com") || url.contains("youtu.be")) {
-  //     setState(() => videoType = VideoType.youtube);
-  //   } else if (url.contains("twitter.com")) {
-  //     setState(() => videoType = VideoType.twitter);
-  //   } else if (url.contains("instagram.com")) {
-  //     setState(() => videoType = VideoType.instagram);
-  //   } else if (url.contains("tiktok.com")) {
-  //     setState(() => videoType = VideoType.tiktok);
-  //   } else {
-  //     setState(() => videoType = VideoType.none);
-  //   }
-  // }
-
-  // Future<void> performDownloading(String url) async {
-  //   Dio dio = Dio();
-  //   var permissions = await [Permission.storage].request();
-
-  //   if (permissions[Permission.storage]!.isGranted) {
-  //     var dir = await getApplicationDocumentsDirectory();
-
-  //     setState(() {
-  //       fileName =
-  //           "/$_getFilePrefix-${DateFormat("yyyyMMddHmmss").format(DateTime.now())}.mp4";
-  //     });
-  //     var path = dir.path + fileName;
-  //     try {
-  //       setState(() => isDownloading = true);
-  //       await dio.download(
-  //         url,
-  //         path,
-  //         onReceiveProgress: (count, total) {
-  //           if (total != -1) {
-  //             setState(() {
-  //               progressValue = (count / total * 100);
-  //               log("Downloading ..... $progressValue");
-  //             });
-  //           }
-  //         },
-  //         deleteOnError: true,
-  //       ).then(
-  //         (value) {
-  //           setState(() {
-  //             isDownloading = false;
-  //             progressValue = 0;
-  //             videoType = VideoType.none;
-  //             isLoading = false;
-  //             qualities = [];
-  //             video = null;
-  //           });
-  //         },
-  //       );
-  //     } catch (e) {
-  //       log("Error $e");
-  //     }
-  //   }
-  // }

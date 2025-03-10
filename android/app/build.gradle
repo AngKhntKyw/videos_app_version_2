@@ -25,7 +25,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.example.videos_app_version_2"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
