@@ -3,21 +3,21 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:direct_link/direct_link.dart';
-import 'package:extractor/extractor.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:videos_app_version_2/repository/video_downloader_repository.dart';
 
-class VideoDownloadPage extends StatefulWidget {
-  const VideoDownloadPage({super.key});
+class FacebookAndInstagramDownLoadPage extends StatefulWidget {
+  const FacebookAndInstagramDownLoadPage({super.key});
 
   @override
-  State<VideoDownloadPage> createState() => _VideoDownloadPageState();
+  State<FacebookAndInstagramDownLoadPage> createState() =>
+      _FacebookAndInstagramDownLoadPageState();
 }
 
-class _VideoDownloadPageState extends State<VideoDownloadPage> {
+class _FacebookAndInstagramDownLoadPageState
+    extends State<FacebookAndInstagramDownLoadPage> {
   final textController = TextEditingController();
   SiteModel? videoData;
   int selectedLinkIndex = 0;
@@ -93,7 +93,7 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Download"),
+        title: const Text("Facepbook & Instagram  Links Download"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(10),
@@ -102,6 +102,7 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
             children: [
               TextField(
                 controller: textController,
+                autocorrect: true,
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
@@ -216,16 +217,7 @@ class _VideoDownloadPageState extends State<VideoDownloadPage> {
                                       final selectedLink =
                                           videoData!.links![selectedLinkIndex];
                                       final downloadUrl = selectedLink.link;
-                                      if (downloadUrl != null) {
-                                        await performDownloading(downloadUrl);
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                              content: Text(
-                                                  "No download URL available")),
-                                        );
-                                      }
+                                      await performDownloading(downloadUrl);
                                     },
                               child: const Text("Download"),
                             ),
