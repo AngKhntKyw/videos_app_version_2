@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'package:better_player/better_player.dart';
+import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:videos_app_version_2/core/enum/download_status.dart';

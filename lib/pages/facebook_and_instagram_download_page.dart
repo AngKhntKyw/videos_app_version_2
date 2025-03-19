@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:direct_link/direct_link.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:videos_app_version_2/repository/video_downloader_repository.dart';
 
@@ -27,18 +28,23 @@ class _FacebookAndInstagramDownLoadPageState
   String fileName = '';
 
   Future<void> performDownloading(String url) async {
-    log("Download URL :$url");
+    // log("Download URL :$url");
     Dio dio = Dio();
     var permissions =
         await [Permission.storage, Permission.manageExternalStorage].request();
+    // log("${permissions[Permission.storage]!.isGranted}");
 
-    if (permissions[Permission.manageExternalStorage]!.isGranted) {
-      Directory? dir = Directory('/storage/emulated/0/Download');
+    if (permissions[Permission.storage]!.isGranted) {
+      // Directory? dir = Directory('/storage/emulated/0/Download');
+      Directory dir = await getApplicationDocumentsDirectory();
       setState(() {
         fileName =
             "/video-${DateFormat("yyyyMMddHmmss").format(DateTime.now())}.mp4";
       });
-      var path = dir.path + fileName;
+      // var path = dir.path + fileName;
+
+      var path =
+          "${dir.path}/video-${DateFormat("yyyyMMddHmmss").format(DateTime.now())}.mp4";
       try {
         setState(() => isDownloading = true);
         await dio.download(
