@@ -36,7 +36,9 @@ class _FacebookAndInstagramDownLoadPageState
 
     if (permissions[Permission.storage]!.isGranted) {
       // Directory? dir = Directory('/storage/emulated/0/Download');
-      Directory dir = await getApplicationDocumentsDirectory();
+      Directory dir = Platform.isIOS
+          ? await getApplicationDocumentsDirectory()
+          : Directory('/storage/emulated/0/Download');
       setState(() {
         fileName =
             "/video-${DateFormat("yyyyMMddHmmss").format(DateTime.now())}.mp4";
@@ -99,7 +101,7 @@ class _FacebookAndInstagramDownLoadPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Facepbook & Instagram  Links Download"),
+        title: const Text("Facepbook & Instagram & Tiktok Links Download"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(10),
@@ -127,7 +129,7 @@ class _FacebookAndInstagramDownLoadPageState
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(20),
                   fixedSize: Size.fromWidth(MediaQuery.sizeOf(context).width),
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4),

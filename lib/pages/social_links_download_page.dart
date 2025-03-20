@@ -41,7 +41,10 @@ class _SocialLinksDownloadPageState extends State<SocialLinksDownloadPage> {
                   borderRadius: BorderRadius.circular(20),
                   color: Colors.blue,
                 ),
-                child: const Text("Facebook & Instagram"),
+                child: const Text(
+                  "Facebook & Instagram",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
             InkWell(
@@ -58,7 +61,10 @@ class _SocialLinksDownloadPageState extends State<SocialLinksDownloadPage> {
                   borderRadius: BorderRadius.circular(20),
                   color: Colors.red,
                 ),
-                child: const Text("Youtube"),
+                child: const Text(
+                  "Youtube",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ],

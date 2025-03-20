@@ -118,18 +118,33 @@ class _YoutubeLinksDownloadPageState extends State<YoutubeLinksDownloadPage> {
       appBar: AppBar(title: const Text("YouTube Video Downloader")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
           children: [
             TextField(
               controller: youtubeLinkController,
-              decoration: const InputDecoration(
-                labelText: "Enter YouTube URL",
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      youtubeLinkController.clear();
+                    });
+                  },
+                  icon: const Icon(Icons.close),
+                ),
               ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(20),
+                fixedSize: Size.fromWidth(MediaQuery.sizeOf(context).width),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
               onPressed: isDownloading
                   ? null
                   : () {
@@ -148,10 +163,10 @@ class _YoutubeLinksDownloadPageState extends State<YoutubeLinksDownloadPage> {
               LinearProgressIndicator(value: progressValue / 100),
               Text("${progressValue.toStringAsFixed(1)}%"),
             ],
-            if (downloadPath != null && !isDownloading) ...[
-              const SizedBox(height: 20),
-              Text("Saved to: $downloadPath"),
-            ],
+            // if (downloadPath != null && !isDownloading) ...[
+            //   const SizedBox(height: 20),
+            //   Text("Saved to: $downloadPath"),
+            // ],
           ],
         ),
       ),
