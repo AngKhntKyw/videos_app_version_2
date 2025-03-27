@@ -1,4 +1,8 @@
 PODS:
+  - AmazonIVSBroadcast (1.24.0):
+    - AmazonIVSBroadcast/Core (= 1.24.0)
+  - AmazonIVSBroadcast/Core (1.24.0)
+  - AmazonIVSPlayer (1.29.0)
   - better_player_plus (1.0.0):
     - Cache (~> 6.0.0)
     - Flutter
@@ -27,6 +31,10 @@ PODS:
   - HLSCachingReverseProxyServer (0.1.0):
     - GCDWebServer (~> 3.5)
     - PINCache (>= 3.0.1-beta.3)
+  - ivs_broadcaster (0.0.1):
+    - AmazonIVSBroadcast (~> 1.24.0)
+    - AmazonIVSPlayer (~> 1.29.0)
+    - Flutter
   - OrderedSet (6.0.3)
   - package_info_plus (0.4.5):
     - Flutter
@@ -57,6 +65,7 @@ DEPENDENCIES:
   - ffmpeg_kit_flutter (from `.symlinks/plugins/ffmpeg_kit_flutter/ios`)
   - Flutter (from `Flutter`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
+  - ivs_broadcaster (from `.symlinks/plugins/ivs_broadcaster/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -66,6 +75,8 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - AmazonIVSBroadcast
+    - AmazonIVSPlayer
     - Cache
     - ffmpeg-kit-ios-https
     - GCDWebServer
@@ -83,6 +94,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_inappwebview_ios:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
+  ivs_broadcaster:
+    :path: ".symlinks/plugins/ivs_broadcaster/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   path_provider_foundation:
@@ -97,6 +110,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
 SPEC CHECKSUMS:
+  AmazonIVSBroadcast: 15f5bb3cd5c26c28322b1a6cd2796340d6d1ff77
+  AmazonIVSPlayer: d723049ee0d9b73f78c21a21fc61e2399e1c2650
   better_player_plus: 10794c0ed1b3b4ae058939e22a6172f850a2039b
   Cache: 4ca7e00363fca5455f26534e5607634c820ffc2d
   ffmpeg-kit-ios-https: ac1fbdb6095fc1595b446084a3447de2c6d78347
@@ -105,6 +120,7 @@ SPEC CHECKSUMS:
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   GCDWebServer: 2c156a56c8226e2d5c0c3f208a3621ccffbe3ce4
   HLSCachingReverseProxyServer: 59935e1e0244ad7f3375d75b5ef46e8eb26ab181
+  ivs_broadcaster: b68b6751097e4e54b3fa7d73688aeb2b712d7075
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
@@ -115,6 +131,6 @@ SPEC CHECKSUMS:
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   wakelock_plus: 04623e3f525556020ebd4034310f20fe7fda8b49
 
-PODFILE CHECKSUM: 36d64f3f4106b30a6624cea300ea8a475cbde0f2
+PODFILE CHECKSUM: 37b8d725d60448091d01ae1634aa494841c65980
 
 COCOAPODS: 1.16.2

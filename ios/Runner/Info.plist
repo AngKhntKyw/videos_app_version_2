@@ -54,6 +54,12 @@
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+		<string>$(FLUTTER_BUILD_NAME) Camera Usage!</string>
+	<key>NSMicrophoneUsageDescription</key>
+		<string>$(FLUTTER_BUILD_NAME) Microphone Usage!</string>
+	<key>CFBundleIdentifier</key>
+		<string>com.example.liveStreamingUsingAmazonIvs</string>
 
 
 </dict>
